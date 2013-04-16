@@ -7,12 +7,12 @@ use strict;
 
 package String::Print;
 use vars '$VERSION';
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 
 #use Log::Report::Optional 'log-report';
 
-use Encode            qw/is_utf8/;
+use Encode            qw/is_utf8 decode/;
 use Unicode::GCString ();
 
 my @default_modifiers   = ( qr/%\S+/ => \&_format_printf );
@@ -83,7 +83,7 @@ sub sprinti($@)
 
     $args->{_join} //= ', ';
 
-    my $result = $format;
+    my $result = is_utf8($format) ? $format : decode(latin1 => $format);
     $result    =~ s/\{(\w+)\s*([^}]*?)\s*\}/$self->_expand($1,$2,$args)/ge;
 
     $result    = $args->{_prepend} . $result if defined $args->{_prepend};
@@ -136,18 +136,19 @@ sub _format_printf($$$$)
 
     }
 
-    return sprintf $format, $value
-        unless is_utf8 $value
-            && $format =~ m/^\%([-+ ]?)([0-9]*)(?:\.([0-9]*))?([sc])$/;
+    $format =~ m/^\%([-+ ]?)([0-9]*)(?:\.([0-9]*))?([sc])$/
+        or return sprintf $format, $value;   # simple: not a string
+    my ($padding, $width, $max, $u) = ($1, $2, $3, $4);
 
-    # String formats like %10s or %-3.5s count characters, no width.
+    # String formats like %10s or %-3.5s count characters, not width.
     # String formats like %10c or %-3.5c are subject to column width.
     # The latter means: minimal 3 chars, max 5, padding right with blanks.
+    # All inserted strings are upgraded into utf8.
 
-    my ($padding, $width, $max, $u) = ($1, $2, $3, $4);
-    my $s = Unicode::GCString->new($value);
+    my $s = Unicode::GCString->new
+      ( is_utf8($value) ? $value : decode(latin1 => $value));
+
     my $pad;
-
     if($u eq 'c')
     {   # too large to fit
         return $value if !$max && $width && $width <= $s->columns;

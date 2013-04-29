@@ -7,7 +7,7 @@ use strict;
 
 package String::Print;
 use vars '$VERSION';
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 
 #use Log::Report::Optional 'log-report';
@@ -136,12 +136,12 @@ sub _format_printf($$$$)
 
     }
 
-    $format =~ m/^\%([-+ ]?)([0-9]*)(?:\.([0-9]*))?([sc])$/
+    $format =~ m/^\%([-+ ]?)([0-9]*)(?:\.([0-9]*))?([sS])$/
         or return sprintf $format, $value;   # simple: not a string
     my ($padding, $width, $max, $u) = ($1, $2, $3, $4);
 
     # String formats like %10s or %-3.5s count characters, not width.
-    # String formats like %10c or %-3.5c are subject to column width.
+    # String formats like %10S or %-3.5S are subject to column width.
     # The latter means: minimal 3 chars, max 5, padding right with blanks.
     # All inserted strings are upgraded into utf8.
 
@@ -149,7 +149,7 @@ sub _format_printf($$$$)
       ( is_utf8($value) ? $value : decode(latin1 => $value));
 
     my $pad;
-    if($u eq 'c')
+    if($u eq 'S')
     {   # too large to fit
         return $value if !$max && $width && $width <= $s->columns;
 

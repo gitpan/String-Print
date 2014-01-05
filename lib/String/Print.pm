@@ -1,4 +1,4 @@
-# Copyrights 2013 by [Mark Overmeer].
+# Copyrights 2013-2014 by [Mark Overmeer].
 #  For other contributors see ChangeLog.
 # See the manual pages for details on the licensing terms.
 # Pod stripped from pm file by OODoc 2.01.
@@ -7,7 +7,7 @@ use strict;
 
 package String::Print;
 use vars '$VERSION';
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 
 #use Log::Report::Optional 'log-report';
@@ -19,6 +19,7 @@ my @default_modifiers   = ( qr/%\S+/ => \&_format_printf );
 my %default_serializers =
  ( UNDEF     => sub { 'undef' }
  , ''        => sub { $_[1]   }
+ , SCALAR    => sub { ${$_[1]} // shift->{LRF_seri}{UNDEF}->(@_) }
  , ARRAY     =>
      sub { my $v = $_[1]; my $join = $_[2]{_join} // ', ';
            join $join, map +($_ // 'undef'), @$v;
@@ -69,6 +70,7 @@ sub import(@)
     *{"$pkg\::sprinti"} = sub { $f->sprinti(@_) } if $all || $func{sprinti};
     *{"$pkg\::printp"}  = sub { $f->printp(@_)  } if $all || $func{printp};
     *{"$pkg\::sprintp"} = sub { $f->sprintp(@_) } if $all || $func{sprintp};
+    $class;
 }
 
 #-------------
@@ -84,7 +86,10 @@ sub sprinti($@)
     $args->{_join} //= ', ';
 
     my $result = is_utf8($format) ? $format : decode(latin1 => $format);
-    $result    =~ s/\{(\w+)\s*([^}]*?)\s*\}/$self->_expand($1,$2,$args)/ge;
+
+    # quite hard to check for a bareword :(
+    $result    =~ s/\{\s* ( [\pL\p{Pc}\pM]\w* )\s*( [^}]*? )\s*\}/
+                    $self->_expand($1,$2,$args)/gxe;
 
     $result    = $args->{_prepend} . $result if defined $args->{_prepend};
     $result   .= $args->{_append}            if defined $args->{_append};
@@ -131,13 +136,13 @@ sub _format_printf($$$$)
     }
     elsif(ref $value eq 'HASH')
     {   keys %$value or return '(none)';
-        return { map +($_ => $self->_format_print($format,$value->{$_},$args)),
-                   keys %$value } ;
-
+        return { map +($_ => $self->_format_print($format, $value->{$_}, $args))
+                   , keys %$value } ;
     }
 
     $format =~ m/^\%([-+ ]?)([0-9]*)(?:\.([0-9]*))?([sS])$/
         or return sprintf $format, $value;   # simple: not a string
+
     my ($padding, $width, $max, $u) = ($1, $2, $3, $4);
 
     # String formats like %10s or %-3.5s count characters, not width.
@@ -153,7 +158,8 @@ sub _format_printf($$$$)
     {   # too large to fit
         return $value if !$max && $width && $width <= $s->columns;
 
-        # wider than max.  Waiting for $s->trim($max) if $max
+        # wider than max.  Waiting for $s->trim($max) if $max, see
+        # https://rt.cpan.org/Public/Bug/Display.html?id=84549
         $s->substr(-1, 1, '')
            while $max && $s->columns > $max;
 

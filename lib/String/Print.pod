@@ -37,7 +37,7 @@ This module inserts values into (translated) strings.  It provides
 C<printf> and C<sprintf> alternatives via both an object oriented and a
 functional interface.
 
-Read in the L<DETAILS> chapter below, why this module provides a better
+Read in the L</DETAILS> chapter below, why this module provides a better
 alternative for C<printf()>.  Also, some extended B<examples> can be
 found there.  Take a look at them first, when you start using this
 module!
@@ -66,7 +66,7 @@ object has some benefits.
 
 =over 4
 
-=item String::Print-E<gt>B<new>(OPTIONS)
+=item String::Print-E<gt>B<new>(%options)
 
  -Option     --Default
   modifiers    [ qr/^%\S+/ = \&format_printf]>
@@ -120,24 +120,24 @@ these functions explicitly, or all together by not specifying the names.
 
 =over 4
 
-=item B<printi>([FILEHANDLE], FORMAT, PAIRS|HASH)
+=item B<printi>( [$fh], $format, PAIRS|HASH )
 
-Calls L<sprinti()|String::Print/"FUNCTIONS"> to fill the data in PAIRS or HASH in FORMAT, and
-then sends it to the FILEHANDLE (by default the selected file)
+Calls L<sprinti()|String::Print/"FUNCTIONS"> to fill the data in PAIRS or HASH in $format, and
+then sends it to the $fh (by default the selected file)
 
   open my $fh, '>', $file;
   printi $fh, ...
 
   printi \*STDERR, ...
 
-=item B<printp>([FILEHANDLE], FORMAT, PAIRS|HASH)
+=item B<printp>( [$fh], $format, PAIRS|HASH )
 
-Calls L<sprintp()|String::Print/"FUNCTIONS"> to fill the data in PAIRS or HASH in FORMAT, and
-then sends it to the FILEHANDLE (by default the selected file)
+Calls L<sprintp()|String::Print/"FUNCTIONS"> to fill the data in PAIRS or HASH in $format, and
+then sends it to the $fh (by default the selected file)
 
-=item B<sprinti>(FORMAT, PAIRS|HASH)
+=item B<sprinti>($format, PAIRS|HASH)
 
-The FORMAT refers to some string, maybe the result of a translation.
+The $format refers to some string, maybe the result of a translation.
 
 The PAIRS (which may be passed as LIST or HASH) contains a mixture of
 special and normal variables to be filled in.  The names of the special
@@ -153,7 +153,7 @@ variables (the options) start with an underscore (C<_>).
 
 =item _append => STRING|OBJECT
 
-Text as STRING appended after FORMAT, without interpolation.
+Text as STRING appended after $format, without interpolation.
 
 =item _count => INTEGER
 
@@ -167,20 +167,20 @@ Which STRING to use when an ARRAY is being filled-in as parameter.
 
 =item _prepend => STRING|OBJECT
 
-Text as STRING prepended before FORMAT, without interpolation.  This
+Text as STRING prepended before $format, without interpolation.  This
 may also be an OBJECT which gets stringified, but variables not filled-in.
 
 =back
 
-=item B<sprintp>(FORMAT, LIST, PAIRS)
+=item B<sprintp>($format, LIST, PAIRS)
 
 Where L<sprinti()|String::Print/"FUNCTIONS"> uses named parameters --especially useful when the
 strings need translation-- this function stays close to the standard
 C<sprintf()>.  All features of POSIX formats are supported.  This
 should say enough: you can use C<%3$0#5.*d>, if you like.
 
-It may be useful to know that the positional FORMAT is rewritten and
-then fed into L<sprinti()|String::Print/"FUNCTIONS">.  Be careful with the length of the LIST:
+It may be useful to know that the positional $format is rewritten and
+then fed into L<sprinti()|String::Print/"FUNCTIONS">.  B<Be careful> with the length of the LIST:
 superfluous parameter PAIRS are passed along to C<sprinti()>, and
 should only contain "specials".
 
@@ -501,8 +501,8 @@ C<String::Print> is nicely integrated with Log::Report.
 
 =head1 SEE ALSO
 
-This module is part of String-Print distribution version 0.13,
-built on January 05, 2014. Website: F<http://perl.overmeer.net/log-report/>
+This module is part of String-Print distribution version 0.14,
+built on March 10, 2014. Website: F<http://perl.overmeer.net/log-report/>
 
 =head1 LICENSE
 

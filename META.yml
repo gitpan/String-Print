@@ -21,4 +21,4 @@ requires:
   Encode: 0
   Test::More: 0.86
   Unicode::GCString: 0
-version: 0.14
+version: 0.15

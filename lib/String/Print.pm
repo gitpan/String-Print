@@ -6,7 +6,7 @@ use warnings;
 use strict;
 
 package String::Print;
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 
 #use Log::Report::Optional 'log-report';
